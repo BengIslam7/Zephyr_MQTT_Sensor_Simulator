@@ -56,7 +56,7 @@ int main(void)
     struct sockaddr_in *broker4 = (struct sockaddr_in *)&broker;
     broker4->sin_family = AF_INET;
     broker4->sin_port = htons(1883);
-    inet_pton(AF_INET, "192.0.2.2", &broker4->sin_addr);
+    inet_pton(AF_INET, "192.168.1.100", &broker4->sin_addr);
 
     /* Configure MQTT client */
     client_ctx.broker = &broker;
@@ -90,6 +90,43 @@ int main(void)
         printk("[MQTT] Connection timeout or failed\n");
         mqtt_abort(&client_ctx);
         return -1;
+    }
+    
+    while(1){
+        // Generate random integers (0–10000) then map to desired range
+        uint32_t rand_temp = sys_rand32_get();
+        uint32_t rand_humi = sys_rand32_get();
+
+        // Convert to realistic float ranges
+        float temperature = 20.0f + (rand_temp % 1500) / 100.0f;  // 20.0–35.0 °C
+        float humidity    = 30.0f + (rand_humi % 7000) / 100.0f;  // 30.0–100.0 %
+
+        // Prepare and publish MQTT message
+        int len = snprintf(tx_buffer, sizeof(tx_buffer),
+                           "Temperature: %.2f°C, Humidity: %.2f%%", temperature, humidity);
+
+        // Log the sensor data
+        printk("[SENSOR] %s\n", tx_buffer);
+
+        struct mqtt_publish_param param = {
+            .message.topic.qos = MQTT_QOS_2_EXACTLY_ONCE,
+            .message.topic.topic.utf8 = (uint8_t *)"sensors/temperature_humidity",
+            .message.topic.topic.size = strlen("sensors/temperature_humidity"),
+            .message.payload.data = tx_buffer,
+            .message.payload.len = len,
+            .message_id = sys_rand32_get(),
+            .dup_flag = 0,
+            .retain_flag = 0,
+        };
+        
+        // Publish the message
+        int res = mqtt_publish(&client_ctx,&param);
+        if (res != 0) {
+            printk("[MQTT] Publish failed: %d\n", res);
+        } else {
+            printk("[MQTT] Publish successful\n");
+        }
+        k_sleep(K_SECONDS(10));
     }
 
     return 0;
