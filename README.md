@@ -49,6 +49,44 @@ This line ensures that your Zephyr application connects to the correct host (the
 
 ---
 
+## 🧠 Install and Configure Mosquitto (MQTT Broker)
+
+You can use Eclipse Mosquitto as a lightweight MQTT broker on your Linux host.
+
+- Install Mosquitto and its clients:
+
+```bash
+sudo apt update
+sudo apt install -y mosquitto mosquitto-clients
+```
+
+- Enable and start the Mosquitto service:
+
+```bash
+sudo systemctl enable mosquitto
+sudo systemctl start mosquitto
+```
+
+- Verify that the broker is running:
+
+```bash
+sudo systemctl status mosquitto
+```
+
+- (Optional) Test locally from your host:
+
+```bash
+mosquitto_sub -h localhost -t test/topic &
+mosquitto_pub -h localhost -t test/topic -m "Hello from host"
+```
+
+- Your Zephyr application can now connect to this broker using:
+
+```bash
+inet_pton(AF_INET, "192.168.1.100", &broker4->sin_addr);
+```
+---
+
 ## ⚙️ Build
 
 Clean and build the project using the `native_sim` board target:
@@ -78,9 +116,14 @@ Or, depending on your system:
 
 If you are using Linux, the output will appear in your terminal, for example:
 
-```
-*** Booting Zephyr OS build v3.x.x ***
-[SENSOR] Temperature: 23.45°C, Humidity: 52.12%
+```bash
+*** Booting Zephyr OS build v4.2.0-2974-g0c84cc5bc69f ***
+[00:00:00.000,000] <inf> net_config: Initializing network
+[00:00:00.000,000] <inf> net_config: IPv4 address: 192.168.1.99
+Starting Zephyr MQTT Sensor Simulator on native_sim
+[00:00:00.120,000] <inf> net_mqtt: Connect completed
+[MQTT] Connected to broker!
+[SENSOR] Temperature: 34.50°C, Humidity: 37.44%
 [MQTT] Publish successful
 ```
 
