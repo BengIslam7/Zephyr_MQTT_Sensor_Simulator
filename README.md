@@ -200,7 +200,7 @@ The pipeline runs on:
    * Downloads the firmware artifact from the build job.
    * Creates a GitHub Release and attaches the firmware files.
 
-> ⚠️ Adjust `matrix:board:[]` in `.github/workflows/ci-cd.yml` for additional boards as needed.
+> ⚠️ Adjust `matrix:board:[]` in `.github/workflows/zephyr-ci-cd.yml` for additional boards as needed.
 
 ---
 
