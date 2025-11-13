@@ -92,3 +92,37 @@ jobs:
             zephyr.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download firmware artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: zephyr_firmware_native_sim
+
+      - name: Install and start MQTT broker
+        run: |
+          sudo apt update
+          sudo apt install -y mosquitto mosquitto-clients
+          sudo systemctl enable mosquitto
+          sudo systemctl start mosquitto
+
+      - name: Run native_sim test with MQTT publisher
+        run: |
+          # Start the MQTT publisher in background
+          timeout 10 bash -c 'while true; do
+            mosquitto_pub -h 127.0.0.1 -t rtest -m "Hello from loop $(date +%T)"
+            sleep 1
+          done' &
+
+          # Run the Zephyr test while publisher is active
+          chmod +x zephyr.exe
+          ./zephyr.exe --gtest_output=xml:test_results.xml || true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test_results_native_sim
+          path: test_results.xml
