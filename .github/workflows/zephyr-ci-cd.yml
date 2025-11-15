@@ -89,9 +89,9 @@ jobs:
           source ~/zephyrproject/.venv/bin/activate
           export ZEPHYR_BASE=~/zephyrproject/zephyr
           cd $GITHUB_WORKSPACE
-          
+
           # Run the Zephyr test while publisher is active
-          chmod +x zephyr.exe
+          chmod +x build/zephyr/zephyr.exe
           build/zephyr/zephyr.exe -stop_at=10
 
       - name: Upload firmware artifact
