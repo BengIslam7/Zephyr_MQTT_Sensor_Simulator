@@ -46,16 +46,11 @@ jobs:
           west zephyr-export
           west packages pip --install
 
-      - name: Install the Zephyr SDK
-        run: |
-          source ~/zephyrproject/.venv/bin/activate
-          cd ~/zephyrproject/zephyr
-          west sdk install
-
       - name: Build application
         run: |
           source ~/zephyrproject/.venv/bin/activate
           export ZEPHYR_BASE=~/zephyrproject/zephyr
+          export ZEPHYR_TOOLCHAIN_VARIANT=host
           cd $GITHUB_WORKSPACE
           west build -b ${{ matrix.board }} --pristine
 
@@ -88,6 +83,7 @@ jobs:
 
           source ~/zephyrproject/.venv/bin/activate
           export ZEPHYR_BASE=~/zephyrproject/zephyr
+          export ZEPHYR_TOOLCHAIN_VARIANT=host
           cd $GITHUB_WORKSPACE
 
           # Run the Zephyr test while publisher is active
