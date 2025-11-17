@@ -56,30 +56,29 @@ jobs:
 
       - name: Check build output
         run: ls -l $GITHUB_WORKSPACE/build/zephyr
-
-      - name: Setup TAP interface 
-        run: | 
-          source ~/zephyrproject/.venv/bin/activate 
-          cd ~/zephyrproject/tools/net-tools 
-          sed -i 's/^IPV4_ADDR_1=.*/IPV4_ADDR_1="192.168.1.100\/24"/' zeth.conf 
-          sed -i 's/^IPV4_ROUTE_1=.*/IPV4_ROUTE_1="192.168.1.1\/24"/' zeth.conf 
-          ./net-setup.sh start
-          cat zeth.conf
       
       - name: Install and start MQTT broker
         run: |
           sudo apt update
           sudo apt install -y mosquitto mosquitto-clients
           sudo systemctl enable mosquitto
-          sudo systemctl start mosquitto
 
       - name: Run native_sim test with MQTT publisher
         run: |
+          sudo systemctl start mosquitto
+          
           # Start the MQTT publisher in background
           timeout 10 bash -c 'while true; do
             mosquitto_pub -h 192.168.1.100 -t rtest -m "Hello from loop $(date +%T)"
             sleep 1
           done' &
+
+          source ~/zephyrproject/.venv/bin/activate 
+          cd ~/zephyrproject/tools/net-tools 
+          sed -i 's/^IPV4_ADDR_1=.*/IPV4_ADDR_1="192.168.1.100\/24"/' zeth.conf 
+          sed -i 's/^IPV4_ROUTE_1=.*/IPV4_ROUTE_1="192.168.1.1\/24"/' zeth.conf 
+          ./net-setup.sh start
+          cat zeth.conf
 
           source ~/zephyrproject/.venv/bin/activate
           export ZEPHYR_BASE=~/zephyrproject/zephyr
